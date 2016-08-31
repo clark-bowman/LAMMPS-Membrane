@@ -1,0 +1,116 @@
+# LAMMPS Script - Bilipid Membrane with Polymerizing Filaments, DPD Fluid (clark_bowman@brown.edu)
+# LAMMPS version Aug. 10, 2015
+
+
+
+
+
+# SEC: This section initializes the simulation.
+
+# 	Define units, atom style, log path, and neighbor settings; and read configuration data for the polymer.
+# 	Configuration data for the polymer in polymer.dat must be generated separately.
+# 	Final line communicates ghost data and is necessary for DPD parallelizing. On some versions of LAMMPS, use instead `communicate single vel yes'
+
+units lj
+atom_style molecular
+log membrane.log
+read_data membrane.dat
+neighbor 0.3 bin
+neigh_modify delay 3
+comm_modify vel yes
+
+# 	Define bond, angle, pairwise interactions.
+# 	For pairwise interactions: type 1 is lipid head, 2 is lipid tail, 3 is water,
+#   4 is filament, 5 is pinned filament, 6 is free monomers, 7 is terminal monomers, 8 is added filament.
+#   43872 is a temperature seed; change for different randomness.
+
+bond_style harmonic
+bond_coeff 1 64 0.5
+bond_coeff 2 100 0.5
+angle_style cosine/delta
+angle_coeff 1 20 180.0
+angle_coeff 2 100.0 180.0
+dihedral_style none
+
+pair_style dpd 1 1.0 43872
+pair_coeff * * 25.0 4.5 1.0
+pair_coeff 1 3*8 35.0 4.5 1.0
+pair_coeff 2 3*8 75.0 20.0 1.0
+pair_coeff 1 2 50.0 9.0 1.0
+pair_coeff 2 2 15.0 4.5 1.0
+
+# SEC: This section initializes the geometry.
+
+#   Define safe regions where fluid may be placed. This is the union of two regions outside the membrane.
+# 	The simulation box is 50 x 32 x 32.
+#   Also creates diffuse monomers on the filament side.
+
+region sim_box block 0 50 -2 34 -2 34 units box side in
+
+region safe1 block 0.1 20.5 0.1 32 0.1 32 units box
+region safe2 block 27.5 50 0.1 32 0.1 32 units box
+region safe union 2 safe1 safe2
+lattice fcc 3
+create_atoms 3 region safe
+lattice fcc 0.1
+create_atoms 6 region safe1
+
+# SEC: This section defines LAMMPS groups and computes that will be used in the simulation.
+
+# 	Groups are named indicatively of their membership.
+# 	Computes include the x, y, and z positions of the center of mass of the membrane.
+
+group fluid type 3
+group polymer type 4
+group pinned type 5
+group membrane subtract all fluid polymer pinned
+group bounded subtract all fluid pinned
+group free subtract all pinned
+group bondable type 6 7
+compute xpos membrane reduce ave x
+compute ypos_a membrane property/atom yu
+compute zpos_a membrane property/atom zu
+compute ypos membrane reduce ave c_ypos_a
+compute zpos membrane reduce ave c_zpos_a
+
+# SEC: This section initializes the particle velocities.
+
+velocity free create ${temperature} 21456
+
+# SEC: This section defines fixes to impose forces in the simulation.
+
+# 	NVE integration, with limit for initialization.
+# 	Fix 2 prevents bounded particles (e.g., monomers) from wrapping around in the X direction.
+# 	Fix 3 pins the bases of the filaments.
+
+fix 1 all nve/limit 0.05
+fix 2 bounded wall/region sim_box lj126 0.001 0.3 1.0
+fix 3 pinned setforce 0.0 0.0 0.0
+
+# SEC: This section runs the simulation.
+
+# 	Simulation timestep (LJ time units).
+timestep 0.001
+
+# 	How often to output thermo data and first run phase.
+thermo 1000
+run 50
+
+# 	Release limit on integrator.
+unfix 1
+fix 1 all nve
+run 10000
+
+#   At this point, begin imposing the force on the membrane.
+# 	Fixes 4, 4a, 4b dump the computes at specified short intervals.
+# 	Dump 1 is a fluid-less simulation dump at the specified interval.
+
+fix 5 membrane addforce -0 0 0
+fix 4 membrane ave/time 10 25 250 c_xpos file xpos.out
+fix 4a membrane ave/time 10 25 250 c_ypos file ypos.out
+fix 4b membrane ave/time 10 25 250 c_zpos file zpos.out
+fix 6 bondable bond/create 1 6 7 0.8 2 iparam 1 7 jparam 2 8 prob 1.0 23478 atype 2
+dump 1 bounded atom 5000 membrane.lammpstrj
+
+# 	Run data-collecting simulation.
+run 5000000
