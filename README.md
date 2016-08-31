@@ -17,3 +17,5 @@ _Outputs_:
 * `ypos.out` - Average membrane unwrapped Y position over time
 * `zpos.out` - Average membrane unwrapped Z position over time
 * `membrane.lammpstrj` - LAMMPS trajectory file for visualization. Loadable in, e.g., [VMD](http://www.ks.uiuc.edu/Research/vmd/). Does not include fluid
+
+Each output has two commented header lines, followed by a series of data in the form `timestep data` on each line. Timesteps are *not* the same as time units (convert with the timestep set in the script, default 0.001).
