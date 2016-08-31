@@ -6,6 +6,9 @@ C++ script which generates a LAMMPS script `membrane.in` and data file `membrane
 ## membrane.dat
 [Data file](http://lammps.sandia.gov/doc/read_data.html) which stores the initial positions of the lipids in a bilayer membrane. Includes positions, bonds, and angles. Also includes the initial configuration of a specified number of rigid filaments which will polymerize.
 
+## params_membrane.txt
+Variable parameters for simulation. Each parameter is the only entry on a line. For the order and description of parameters, see the commented parameter input section of `membrane_polymerization.cpp`.
+
 ## membrane.in
 LAMMPS script modeling a bilipid membrane in a periodic simulation box filled with DPD fluid. `membrane.dat` must be in the same directory to run. This script runs with the version of LAMMPS compiled Aug. 10, 2015.
 
