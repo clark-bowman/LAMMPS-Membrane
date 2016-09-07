@@ -75,7 +75,7 @@ compute zpos membrane reduce ave c_zpos_a
 
 # SEC: This section initializes the particle velocities.
 
-velocity free create ${temperature} 21456
+velocity free create 1 21456
 
 # SEC: This section defines fixes to impose forces in the simulation.
 
@@ -94,7 +94,7 @@ timestep 0.001
 
 # 	How often to output thermo data and first run phase.
 thermo 1000
-run 50
+run 500
 
 # 	Release limit on integrator.
 unfix 1
@@ -109,7 +109,7 @@ fix 5 membrane addforce -0 0 0
 fix 4 membrane ave/time 10 25 250 c_xpos file xpos.out
 fix 4a membrane ave/time 10 25 250 c_ypos file ypos.out
 fix 4b membrane ave/time 10 25 250 c_zpos file zpos.out
-fix 6 bondable bond/create 1 6 7 0.8 2 iparam 1 7 jparam 2 8 prob 1.0 23478 atype 2
+fix 6 bondable bond/create 1 6 7 0.8 2 iparam 1 7 jparam 2 8 prob 1 23478 atype 2
 dump 1 bounded atom 5000 membrane.lammpstrj
 
 # 	Run data-collecting simulation.
