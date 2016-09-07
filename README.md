@@ -7,7 +7,7 @@ C++ script which generates a LAMMPS script `membrane.in` and data file `membrane
 Variable parameters for simulation. Each parameter is the only entry on a line. For the order and description of parameters, see the commented parameter input section of `membrane_polymerization.cpp`.
 
 ## membrane.in
-LAMMPS script modeling a bilipid membrane in a periodic simulation box filled with DPD fluid. `membrane.dat` must be in the same directory to run. This script runs with the version of LAMMPS compiled Aug. 10, 2015.
+LAMMPS script modeling a bilipid membrane in a periodic simulation box filled with DPD fluid. `membrane.dat` must be in the same directory to run. This script runs with the version of LAMMPS compiled Aug. 10, 2015 (LAMMPS must be compiled with the MC package, which includes `fix bond/break`).
 
 _Outputs_:
 * `xpos.out` - Average membrane X position over time
